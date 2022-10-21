@@ -24,6 +24,8 @@
 #include "particles/ParticleSystemComponent.h"
 #include "GameFramework/PlayerController.h" //
 
+#include "TimerManager.h" // 
+
 
 
 AMeleeCombatCharacter::AMeleeCombatCharacter()
@@ -87,6 +89,9 @@ void AMeleeCombatCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 	PlayerInputComponent->BindAction("ToggleCombat", IE_Pressed, this, &AMeleeCombatCharacter::ToggleCombatButtonPressed);
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AMeleeCombatCharacter::InteractButtonPressed);
 	PlayerInputComponent->BindAction("Light Attack", IE_Pressed, this, &AMeleeCombatCharacter::LightAttackButtonPressed);
+	PlayerInputComponent->BindAction("Heavy Attack", IE_Pressed, this, &AMeleeCombatCharacter::HeavyAttackButtonPressed);
+	PlayerInputComponent->BindAction("Charged Attack", IE_Pressed, this, &AMeleeCombatCharacter::ChargedAttackButtonPressed);
+	PlayerInputComponent->BindAction("Charged Attack", IE_Released, this, &AMeleeCombatCharacter::ChargedAttackButtonReleased);
 	PlayerInputComponent->BindAction("Dodge", IE_Pressed, this, &AMeleeCombatCharacter::DodgeButtonPressed);
 
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &AMeleeCombatCharacter::SprintButtonPressed);
@@ -95,7 +100,6 @@ void AMeleeCombatCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 
 	PlayerInputComponent->BindAxis("Move Forward / Backward", this, &AMeleeCombatCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("Move Right / Left", this, &AMeleeCombatCharacter::MoveRight);
-
 
 	PlayerInputComponent->BindAxis("Turn Right / Left Mouse", this, &APawn::AddControllerYawInput);
 	PlayerInputComponent->BindAxis("Turn Right / Left Gamepad", this, &AMeleeCombatCharacter::TurnAtRate);
@@ -139,7 +143,6 @@ void AMeleeCombatCharacter::PlayAnimationMontage(UAnimMontage* AnimationMontageT
 	}
 }
 
-
 void AMeleeCombatCharacter::InteractButtonPressed()
 {
 	if (CombatComponent)
@@ -154,6 +157,43 @@ void AMeleeCombatCharacter::LightAttackButtonPressed()
 	if (CombatComponent)
 	{
 		CombatComponent->Attack(false, EAttackType::EAT_Light);
+	}
+}
+
+void AMeleeCombatCharacter::HeavyAttackButtonPressed()
+{
+	if (CombatComponent)
+	{
+		CombatComponent->Attack(false, EAttackType::EAT_Heavy);
+	}
+}
+
+void AMeleeCombatCharacter::ChargedAttackButtonPressed()
+{
+	// Timer v
+	GetWorldTimerManager().SetTimer(
+		ChargedAttackTimer,
+		this,
+		&AMeleeCombatCharacter::ChargedAttackTimerFinished,
+		ChargeTime
+	);
+}
+
+void AMeleeCombatCharacter::ChargedAttackTimerFinished()
+{
+	if (CombatComponent)
+	{
+		CombatComponent->Attack(false, EAttackType::EAT_Charged);
+	}
+	// Co can phai clear timer khong?
+}
+
+void AMeleeCombatCharacter::ChargedAttackButtonReleased()
+{
+	// If timer is running -> clear timer
+	if( GetWorldTimerManager().IsTimerActive(ChargedAttackTimer) )
+	{
+		GetWorldTimerManager().ClearTimer(ChargedAttackTimer);
 	}
 }
 
@@ -335,6 +375,8 @@ void AMeleeCombatCharacter::DeadTimerFinished()
 	}
 	Destroy();
 }
+
+
 
 
 void AMeleeCombatCharacter::EnableRagdoll()

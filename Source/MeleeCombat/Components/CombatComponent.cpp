@@ -19,8 +19,6 @@ UCombatComponent::UCombatComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-
-
 void UCombatComponent::SpawnWeapon(TSubclassOf<ABaseWeapon> WeaponClass)
 {
 	if (!CombatCharacter)
@@ -57,26 +55,34 @@ void UCombatComponent::SpawnWeapon(TSubclassOf<ABaseWeapon> WeaponClass)
 
 void UCombatComponent::Attack(const bool& bRandomAttack, const EAttackType& TypeOfAttack)
 {
-	if (CombatState == ECombatState::ECS_Attacking)
+	if (bCanPerformNextAttack == false)
 	{
 		bIsSavingAttack = true;
+		// 
+		if (CurrentAttackType != TypeOfAttack)
+		{
+			CurrentAttackType = TypeOfAttack;
+			AttackIndex = 0;
+		}
 		return;
 	}
 
-	if (CanAttack())
+	if (CanAttack(TypeOfAttack))
 	{
 		// Get Correct Attack Anim Montage
+		
+		const TArray<UAnimMontage*>& AttackArray = MainWeapon->GetAttackAnimMontages(TypeOfAttack);
 		UAnimMontage* AttackAM;
 		if (bRandomAttack)
 		{
-			int32 RandomIndex = FMath::RandRange(0, MainWeapon->GetAttackAMs().Num() - 1);
-			AttackAM = MainWeapon->GetAttackAMs()[RandomIndex];
+			int32 RandomIndex = FMath::RandRange(0, AttackArray.Num() - 1);
+			AttackAM = AttackArray[RandomIndex];
 		}
 		else
 		{
-			AttackAM = MainWeapon->GetAttackAMs()[AttackIndex];
+			AttackAM = AttackArray[AttackIndex];
 			++AttackIndex;
-			if (AttackIndex > MainWeapon->GetAttackAMs().Num() - 1)
+			if (AttackIndex > AttackArray.Num() - 1)
 			{
 				AttackIndex = 0;
 			}
@@ -88,11 +94,12 @@ void UCombatComponent::Attack(const bool& bRandomAttack, const EAttackType& Type
 			CurrentAttackType = TypeOfAttack;
 			CombatCharacter->PlayAnimationMontage(AttackAM);
 			CombatState = ECombatState::ECS_Attacking;
+			bCanPerformNextAttack = false;
 		}
 	}
 }
 
-bool UCombatComponent::CanAttack()
+bool UCombatComponent::CanAttack(const EAttackType& TypeOfAttack)
 {
 	// neu dang nhay thi return ve false luon, khong mau me
 	if (CombatCharacter && CombatCharacter->GetCharacterMovement()->IsFalling())
@@ -100,20 +107,27 @@ bool UCombatComponent::CanAttack()
 		return false;
 	}
 	
+	
+
 	return CombatCharacter 
 		&& bIsHoldingWeapon
 		&& MainWeapon 
-		&& !MainWeapon->GetAttackAMs().IsEmpty() 
-		&& CombatState == ECombatState::ECS_Free;
+		&& !MainWeapon->GetAttackAnimMontages(TypeOfAttack).IsEmpty() 
+		&& (bCanPerformNextAttack || CombatState == ECombatState::ECS_Free);
 }
 
-void UCombatComponent::OnFinishAttack(const EAttackType& TypeOfAttack)
+
+// Khi dang attack nhung o 1 diem nao do co the thuc hien attack tiep theo ma khong can
+// phai doi cho attack nay ket thuc
+// co nghia la van dang attack
+// khong attack chi dien ra khi reset combat (doi 1 diem khi animation gan ket thuc)
+void UCombatComponent::PerformNextAttackPoint(const EAttackType& TypeOfAttack)
 {
-	CombatState = ECombatState::ECS_Free;
 	if (bIsSavingAttack)
 	{
 		Attack(false, TypeOfAttack);
 		bIsSavingAttack = false;
+		bCanPerformNextAttack = true;
 	}
 }
 
@@ -144,6 +158,7 @@ void UCombatComponent::ToggleCombat()
 		{
 			CombatCharacter->PlayAnimationMontage(MainWeapon->GetDrawAM());
 			bIsHoldingWeapon = true;
+			bCanPerformNextAttack = true;
 			CombatState = ECombatState::ECS_TogglingCombat;
 		}
 	}
@@ -153,6 +168,7 @@ void UCombatComponent::ToggleCombat()
 		{
 			CombatCharacter->PlayAnimationMontage(MainWeapon->GetDisarmAM());
 			bIsHoldingWeapon = false;
+			bCanPerformNextAttack = false; // boi vi minh da bo weapon!!!
 			CombatState = ECombatState::ECS_TogglingCombat;
 		}
 	}
@@ -248,6 +264,7 @@ void UCombatComponent::ResetCombat()
 	AttackIndex = 0;
 	bIsSavingAttack = false;
 	CombatState = ECombatState::ECS_Free;
+	bCanPerformNextAttack = true;
 	CurrentAttackType = EAttackType::EAT_None; 
 }
 

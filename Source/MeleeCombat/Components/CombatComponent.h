@@ -29,7 +29,7 @@ public:
 	// Called every frame
 	// virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	void Attack(const bool& bRandomAttack, const EAttackType& TypeOfAttack);
-	bool CanAttack();
+	bool CanAttack(const EAttackType& TypeOfAttack);
 	void ToggleCombat();
 	void Interact();
 	void Dodge(bool bRandomDodge);
@@ -38,7 +38,7 @@ public:
 	void SpawnWeapon(TSubclassOf<ABaseWeapon> WeaponClass);
 
 	UFUNCTION(BlueprintCallable)
-	void OnFinishAttack(const EAttackType& TypeOfAttack);
+	void PerformNextAttackPoint(const EAttackType& TypeOfAttack);
 
 	UFUNCTION(BlueprintCallable)
 	void OnResetAttack();
@@ -68,6 +68,9 @@ private:
 
 	bool bIsHoldingWeapon = false;
 	bool bIsSavingAttack = false;
+
+	// Chi true lan dau neu hold weapon
+	bool bCanPerformNextAttack = false;
 
 
 	int32 AttackIndex = 0;

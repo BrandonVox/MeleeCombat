@@ -93,4 +93,30 @@ FVector ABaseWeapon::GetTraceEndLocation() const
 	return GetItemMesh()->GetSocketLocation(EndSocketName);
 }
 
+TArray<UAnimMontage*> ABaseWeapon::GetAttackAnimMontages(const EAttackType& AttackType) const
+{
+	switch (AttackType)
+	{
+	case EAttackType::EAT_Light:
+		return LightAttackAnimMontages;
+		break;
+	case EAttackType::EAT_Heavy:
+		return HeavyAttackAnimMontages;
+		break;
+	case EAttackType::EAT_Charged:
+		return ChargedAttackAnimMontages;
+		break;
+	case EAttackType::EAT_Falling:
+		return FallingAttackAnimMontages;
+		break;
+	case EAttackType::EAT_Sprinting:
+		return SprintingAttackAnimMontages;
+		break;
+	}
+
+	return TArray<UAnimMontage*>();
+}
+
+
+
 

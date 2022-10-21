@@ -53,6 +53,9 @@ protected:
 	void ToggleCombatButtonPressed();
 	void InteractButtonPressed();
 	void LightAttackButtonPressed();
+	void HeavyAttackButtonPressed();
+	void ChargedAttackButtonPressed();
+	void ChargedAttackButtonReleased();
 	void DodgeButtonPressed();
 
 	void SprintButtonPressed();
@@ -69,6 +72,7 @@ protected:
 
 private:
 	void DeadTimerFinished();
+	void ChargedAttackTimerFinished();
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
@@ -112,6 +116,15 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	ESpeedMode CurrentSpeedMode = ESpeedMode::ESM_Jogging;
+
+	// Charge
+
+	UPROPERTY()
+	FTimerHandle ChargedAttackTimer;
+
+	UPROPERTY(EditAnywhere, Category = Combat)
+	float ChargeTime = 3.f;
+
 
 public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }

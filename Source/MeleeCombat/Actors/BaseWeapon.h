@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "BaseEquipable.h"
 #include "MeleeCombat/Types/CombatType.h"
+#include "MeleeCombat/Types/AttackType.h"
+
 #include "BaseWeapon.generated.h"
 
 /**
@@ -29,6 +31,8 @@ public:
 	FVector GetTraceStartLocation() const;
 	FVector GetTraceEndLocation() const;
 
+	TArray<UAnimMontage*> GetAttackAnimMontages(const EAttackType& AttackType) const;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -50,8 +54,23 @@ private:
 	UAnimMontage* DisarmAM;
 
 
+	// 
 	UPROPERTY(EditAnywhere, Category = Animations)
-	TArray<UAnimMontage*> AttackAMs;
+	TArray<UAnimMontage*> LightAttackAnimMontages;
+
+	UPROPERTY(EditAnywhere, Category = Animations)
+	TArray<UAnimMontage*> HeavyAttackAnimMontages;
+
+	UPROPERTY(EditAnywhere, Category = Animations)
+	TArray<UAnimMontage*> ChargedAttackAnimMontages;
+
+	UPROPERTY(EditAnywhere, Category = Animations)
+	TArray<UAnimMontage*> FallingAttackAnimMontages;
+
+	UPROPERTY(EditAnywhere, Category = Animations)
+	TArray<UAnimMontage*> SprintingAttackAnimMontages;
+	//
+
 
 	UPROPERTY(EditAnywhere, Category = Animations)
 	TArray<UAnimMontage*> DodgeAMs;
@@ -71,7 +90,6 @@ public:
 	FORCEINLINE UAnimMontage* GetDisarmAM() const { return DisarmAM; }
 	FORCEINLINE ECombatType GetCombatType() const { return CombatType; }
 
-	FORCEINLINE TArray<UAnimMontage*> GetAttackAMs() const { return AttackAMs; }
 	FORCEINLINE TArray<UAnimMontage*> GetDodgeAMs() const { return DodgeAMs; }
 
 	FORCEINLINE UCollisionComponent* GetCollisionComponent() const { return CollisionComponent; }
