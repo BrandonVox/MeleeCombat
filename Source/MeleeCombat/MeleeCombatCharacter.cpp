@@ -156,7 +156,7 @@ void AMeleeCombatCharacter::LightAttackButtonPressed()
 {
 	if (CombatComponent)
 	{
-		CombatComponent->Attack(false, EAttackType::EAT_Light);
+		CombatComponent->AttackButtonPressed(false, EAttackType::EAT_Light);
 	}
 }
 
@@ -164,13 +164,30 @@ void AMeleeCombatCharacter::HeavyAttackButtonPressed()
 {
 	if (CombatComponent)
 	{
-		CombatComponent->Attack(false, EAttackType::EAT_Heavy);
+		CombatComponent->AttackButtonPressed(false, EAttackType::EAT_Heavy);
 	}
 }
 
 void AMeleeCombatCharacter::ChargedAttackButtonPressed()
 {
-	// Timer v
+	// If current attack type not charged
+	// -> Reset combat
+	// stop all bullshit
+	if (CombatComponent->GetCurrentAttackType() != EAttackType::EAT_Charged)
+	{
+		UCombatAnimInstance* CombatAnimInstance = Cast<UCombatAnimInstance>(GetMesh()->GetAnimInstance());
+		if (CombatAnimInstance && CombatAnimInstance->IsAnyMontagePlaying())
+		{
+			CombatAnimInstance->StopAllMontages(0.3f);
+			CombatComponent->ResetCombat();
+		}
+	}
+
+
+
+
+
+
 	GetWorldTimerManager().SetTimer(
 		ChargedAttackTimer,
 		this,
@@ -183,9 +200,10 @@ void AMeleeCombatCharacter::ChargedAttackTimerFinished()
 {
 	if (CombatComponent)
 	{
-		CombatComponent->Attack(false, EAttackType::EAT_Charged);
+		CombatComponent->AttackButtonPressed(false, EAttackType::EAT_Charged);
 	}
 	// Co can phai clear timer khong?
+	GetWorldTimerManager().ClearTimer(ChargedAttackTimer);
 }
 
 void AMeleeCombatCharacter::ChargedAttackButtonReleased()

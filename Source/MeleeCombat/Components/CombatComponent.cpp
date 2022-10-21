@@ -53,12 +53,15 @@ void UCombatComponent::SpawnWeapon(TSubclassOf<ABaseWeapon> WeaponClass)
 	}
 }
 
-void UCombatComponent::Attack(const bool& bRandomAttack, const EAttackType& TypeOfAttack)
+void UCombatComponent::AttackButtonPressed(const bool& bRandomAttack, const EAttackType& TypeOfAttack)
 {
 	if (bCanPerformNextAttack == false)
 	{
 		bIsSavingAttack = true;
-		// 
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green, FString("Saving 1 attack"));
+		}
 		if (CurrentAttackType != TypeOfAttack)
 		{
 			CurrentAttackType = TypeOfAttack;
@@ -70,7 +73,6 @@ void UCombatComponent::Attack(const bool& bRandomAttack, const EAttackType& Type
 	if (CanAttack(TypeOfAttack))
 	{
 		// Get Correct Attack Anim Montage
-		
 		const TArray<UAnimMontage*>& AttackArray = MainWeapon->GetAttackAnimMontages(TypeOfAttack);
 		UAnimMontage* AttackAM;
 		if (bRandomAttack)
@@ -97,6 +99,8 @@ void UCombatComponent::Attack(const bool& bRandomAttack, const EAttackType& Type
 			bCanPerformNextAttack = false;
 		}
 	}
+
+
 }
 
 bool UCombatComponent::CanAttack(const EAttackType& TypeOfAttack)
@@ -107,13 +111,11 @@ bool UCombatComponent::CanAttack(const EAttackType& TypeOfAttack)
 		return false;
 	}
 	
-	
-
 	return CombatCharacter 
 		&& bIsHoldingWeapon
 		&& MainWeapon 
 		&& !MainWeapon->GetAttackAnimMontages(TypeOfAttack).IsEmpty() 
-		&& (bCanPerformNextAttack || CombatState == ECombatState::ECS_Free);
+		&& (CombatState == ECombatState::ECS_Free || bCanPerformNextAttack);
 }
 
 
@@ -123,11 +125,16 @@ bool UCombatComponent::CanAttack(const EAttackType& TypeOfAttack)
 // khong attack chi dien ra khi reset combat (doi 1 diem khi animation gan ket thuc)
 void UCombatComponent::PerformNextAttackPoint(const EAttackType& TypeOfAttack)
 {
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green, FString("Can perform next attack!"));
+	}
+	bCanPerformNextAttack = true;
 	if (bIsSavingAttack)
 	{
-		Attack(false, TypeOfAttack);
+		AttackButtonPressed(false, TypeOfAttack);
 		bIsSavingAttack = false;
-		bCanPerformNextAttack = true;
 	}
 }
 
@@ -266,6 +273,11 @@ void UCombatComponent::ResetCombat()
 	CombatState = ECombatState::ECS_Free;
 	bCanPerformNextAttack = true;
 	CurrentAttackType = EAttackType::EAT_None; 
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green, FString("Reset combat called"));
+	}
 }
 
 void UCombatComponent::RotateCharacterWhenDodging(const float& DeltaTime, const float& InterpSpeed)

@@ -28,7 +28,7 @@ public:
 	
 	// Called every frame
 	// virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	void Attack(const bool& bRandomAttack, const EAttackType& TypeOfAttack);
+	void AttackButtonPressed(const bool& bRandomAttack, const EAttackType& TypeOfAttack);
 	bool CanAttack(const EAttackType& TypeOfAttack);
 	void ToggleCombat();
 	void Interact();
